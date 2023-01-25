@@ -31,9 +31,9 @@ dataset_info:
     dtype:
       class_label:
         names:
-          0: entailment
-          1: neutral
-          2: contradiction
+          '0': entailment
+          '1': neutral
+          '2': contradiction
   config_name: plain_text
   splits:
   - name: test
