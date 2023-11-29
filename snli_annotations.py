@@ -62,6 +62,8 @@ class Snli(datasets.GeneratorBasedBuilder):
                     "premise": datasets.Value("string"),
                     "hypothesis": datasets.Value("string"),
                     "label": datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
+                    "annotations": datasets.features.Sequence(
+                        feature=datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"])),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -92,8 +94,12 @@ class Snli(datasets.GeneratorBasedBuilder):
             reader = csv.DictReader(f, delimiter="\t", quoting=csv.QUOTE_NONE)
             for idx, row in enumerate(reader):
                 label = -1 if row["gold_label"] == "-" else row["gold_label"]
+                annotations = [
+                    row[title] for title in ["label1", "label2", "label3", "label4", "label5"] if row[title]
+                ]
                 yield idx, {
                     "premise": row["sentence1"],
                     "hypothesis": row["sentence2"],
                     "label": label,
+                    "annotations": annotations
                 }
