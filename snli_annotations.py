@@ -17,6 +17,7 @@
 """The Stanford Natural Language Inference (SNLI) Corpus."""
 
 
+import collections
 import csv
 import os
 
@@ -64,6 +65,9 @@ class Snli(datasets.GeneratorBasedBuilder):
                     "label": datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"]),
                     "annotations": datasets.features.Sequence(
                         feature=datasets.features.ClassLabel(names=["entailment", "neutral", "contradiction"])),
+                    "label_counter": {"entailment": datasets.Value("int32"), "neutral": datasets.Value("int32"), "contradiction": datasets.Value("int32")},
+                    "label_count": datasets.features.Sequence(datasets.Value("int32")),
+                    "label_dist": datasets.features.Sequence(datasets.Value("float")),
                 }
             ),
             # No default supervised_keys (as we have to pass both premise
@@ -97,9 +101,19 @@ class Snli(datasets.GeneratorBasedBuilder):
                 annotations = [
                     row[title] for title in ["label1", "label2", "label3", "label4", "label5"] if row[title]
                 ]
+                label_counter = collections.Counter(annotations)
+                for label in ["entailment", "neutral", "contradiction"]:
+                    if label not in label_counter:
+                        label_counter[label] = 0
+                label_count = [label_counter[label] for label in ["entailment", "neutral", "contradiction"]]
+                csum = sum(label_count)
+                label_dist = [c / csum for c in label_count]
                 yield idx, {
                     "premise": row["sentence1"],
                     "hypothesis": row["sentence2"],
                     "label": label,
-                    "annotations": annotations
+                    "annotations": annotations,
+                    "label_counter": dict(label_counter),
+                    "label_count": label_count,
+                    "label_dist": label_dist
                 }
